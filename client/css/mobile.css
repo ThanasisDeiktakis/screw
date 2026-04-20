@@ -1,0 +1,61 @@
+/* ── Responsive: mobile view (≤600px) ── */
+@media (max-width: 600px) {
+  body { position: relative; overflow: hidden; }
+
+  #sidebar {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    width: 100%; z-index: 10;
+    border-right: none; padding: 12px 10px;
+    overflow-y: auto;
+  }
+  body.mobile-chat #sidebar { display: none; }
+
+  #main {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 5;
+    display: none;
+    flex-direction: column; overflow: hidden;
+  }
+  body.mobile-chat #main { display: flex; }
+
+  #chat-header {
+    flex-shrink: 0;
+    padding: 10px 12px !important;
+  }
+
+  #chat-area { flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
+  #inbox { overflow-y: auto; min-height: 0; padding: 10px 12px; }
+
+  #send-area {
+    flex-shrink: 0;
+    padding: 8px 12px 12px;
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
+  }
+
+  #btn-back {
+    display: flex; align-items: center; justify-content: center;
+    background: none; border: none; color: #9cdcfe;
+    font-size: 20px; padding: 0 8px 0 0; margin: 0;
+    cursor: pointer; flex-shrink: 0; line-height: 1;
+  }
+  #btn-back:hover { color: #4ec9b0; background: none; }
+
+  .msg { width: 85%; }
+
+  /* Full-screen popups */
+  .modal-overlay { align-items: flex-start; }
+  .modal {
+    width: 100% !important; max-width: 100% !important;
+    min-height: 100dvh; border-radius: 0 !important;
+    border-left: none; border-right: none;
+    padding: 56px 16px 24px !important;
+    overflow-y: auto; max-height: 100dvh;
+    box-sizing: border-box;
+  }
+  .modal-close-btn { display: flex; }
+}
+
+/* ── Desktop: back button hidden ── */
+@media (min-width: 601px) {
+  #btn-back { display: none; }
+}

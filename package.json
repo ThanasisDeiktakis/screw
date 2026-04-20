@@ -1,0 +1,10 @@
+{
+  "name": "screw",
+  "version": "1.0.0",
+  "description": "Screw — decentralized encrypted messenger",
+  "scripts": {
+    "install": "cd server && npm install",
+    "start": "cd server && node index.js"
+  }
+}
+

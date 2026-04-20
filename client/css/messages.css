@@ -1,0 +1,367 @@
+/* ── Older messages indicator (scroll up)  ── */
+.chat-load-more {
+  text-align: center;
+  padding: 6px 16px;
+  margin: 4px auto 12px;
+  font-size: 11px;
+  color: #555;
+  border: 1px solid #2a2a2a;
+  border-radius: 16px;
+  width: fit-content;
+  background: #1a1a1a;
+  user-select: none;
+}
+
+/* ── Message bubbles ── */
+.msg {
+  margin-bottom: 10px; padding: 8px 12px; border-radius: 10px;
+  font-size: 13px; line-height: 1.6;
+  width: 75%; align-self: center;
+  background: #1e1e2d; border: 1px solid #3a3a6a;
+  color: #888; text-align: center;
+}
+.msg-meta {
+  color: #aaa; font-size: 11px; margin-top: 4px;
+  display: flex; justify-content: flex-end;
+}
+.msg-payload { word-break: break-word; }
+
+.msg-sender {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 11px; color: #888; margin-bottom: 4px;
+}
+.msg-grouped { margin-top: -15px; }
+
+.msg-left {
+  background: #182533; border-color: #081523;
+  border-radius: 10px 10px 10px 0;
+  align-self: flex-start; text-align: left; color: #d4d4d4;
+}
+.msg-right {
+  background: #2b5278; border-color: #1b4268;
+  border-radius: 10px 10px 0 10px;
+  align-self: flex-end; text-align: left; color: #fff;
+}
+.msg-warning {
+  background: #3a1a1a; border-color: #f44747; color: #f44747;
+  font-weight: bold; max-width: 100%; align-self: stretch; text-align: center;
+}
+
+/* ── Emoji picker ── */
+#emoji-btn { color: inherit; }
+#emoji-btn:hover { background: #2d2d2d !important; border-color: #666 !important; }
+
+#emoji-panel {
+  position: fixed;
+  background: #252526; border: 1px solid #444; border-radius: 8px;
+  padding: 8px; gap: 4px;
+  display: none; grid-template-columns: repeat(5, 1fr);
+  box-shadow: 0 4px 16px rgba(0,0,0,.5);
+  z-index: 200; width: auto;
+}
+#emoji-panel.open { display: grid; }
+#emoji-panel span {
+  font-size: 22px; text-align: center; cursor: pointer;
+  border-radius: 6px; padding: 4px; line-height: 1.3;
+  user-select: none; transition: background .1s;
+}
+#emoji-panel span:hover { background: #3a3a3a; }
+
+/* ── Attach button and dropdown ── */
+.attach-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+.btn-attach {
+  background: none; border: 1px solid #555; border-radius: 6px;
+  color: #ccc; font-size: 18px; line-height: 1; cursor: pointer;
+  padding: 4px 9px;
+  transition: border-color .2s, background .2s;
+}
+.btn-attach:hover { background: #2d2d2d; border-color: #888; }
+.btn-attach.active { border-color: #7aa; color: #7aa; }
+
+.attach-menu {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 0;
+  background: #252525;
+  border: 1px solid #444;
+  border-radius: 8px;
+  overflow: hidden;
+  min-width: 160px;
+  width: max-content;
+  z-index: 200;
+  box-shadow: 0 4px 16px rgba(0,0,0,.5);
+}
+.attach-menu button {
+  display: block; width: 100%;
+  background: none; border: none;
+  color: #ddd; font-size: 14px;
+  text-align: left; padding: 10px 14px;
+  cursor: pointer;
+  transition: background .15s;
+}
+.attach-menu button:hover:not(:disabled) { background: #333; }
+.attach-menu button.disabled,
+.attach-menu button:disabled { color: #555; cursor: default; }
+
+/* ── Selected file preview ── */
+#file-preview-bar {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 10px;
+  background: #1e1e1e;
+  border-top: 1px solid #333;
+  border-bottom: 1px solid #333;
+}
+#file-preview-content {
+  display: flex; align-items: center; gap: 8px;
+  flex: 1; min-width: 0;
+  font-size: 13px; color: #ccc;
+}
+#file-preview-content img {
+  width: 40px; height: 40px; object-fit: cover;
+  border-radius: 4px; flex-shrink: 0;
+}
+#file-preview-content .fp-icon { font-size: 22px; flex-shrink: 0; }
+#file-preview-content .fp-name {
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+#file-preview-content .fp-size { font-size: 11px; color: #777; flex-shrink: 0; }
+.file-preview-cancel {
+  background: none; border: none; color: #777;
+  font-size: 16px; cursor: pointer; flex-shrink: 0; padding: 2px 4px;
+}
+.file-preview-cancel:hover { color: #f44; }
+
+/* ── File bubble ── */
+.file-bubble {
+  padding: 6px 0 4px;
+}
+.file-info {
+  display: flex; align-items: center; gap: 8px;
+  background: rgba(0,0,0,.2); border-radius: 8px;
+  padding: 8px 10px; min-width: 180px; max-width: 100%;
+}
+.file-icon { font-size: 22px; flex-shrink: 0; }
+.file-details { flex: 1; overflow: hidden; }
+.file-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.file-size { font-size: 11px; color: #aaa; margin-top: 2px; }
+.file-download-btn {
+  background: none;
+  border: 1px solid #2b5278;
+  border-radius: 6px;
+  color: #ddd;
+  font-size: 15px;
+  cursor: pointer;
+  padding: 4px 8px;
+  min-width: 36px; height: 36px;
+  flex-shrink: 0;
+  transition: border-color .2s, background .2s;
+}
+.file-download-btn:hover { background: #2d2d2d; border-color: #888; }
+
+.file-bubble-image .file-img-wrap { margin-bottom: 4px; }
+.file-load-btn {
+  background: rgba(0,0,0,.2); border: 1px dashed #555; border-radius: 8px;
+  color: #aaa; font-size: 12px; cursor: pointer; padding: 10px 14px;
+  width: 100%; text-align: center; transition: border-color .2s;
+}
+.file-load-btn:hover { border-color: #888; color: #ddd; }
+.file-preview-img {
+  max-width: 100%; max-height: 300px; border-radius: 8px;
+  display: block; cursor: zoom-in;
+}
+.file-loading { color: #aaa; font-size: 12px; padding: 8px; }
+.file-error   { color: #f44747; font-size: 12px; padding: 8px; }
+
+.file-expiry { font-size: 11px; color: #888; margin-top: 4px; }
+.file-expiry.expired { color: #f44747; }
+
+/* ── Audio player ── */
+.file-bubble-audio .audio-player {
+  display: flex; align-items: center; gap: 8px;
+  background: rgba(0,0,0,.2); border-radius: 8px;
+  padding: 8px 10px; min-width: 220px; max-width: 100%;
+}
+.audio-play-btn {
+  background: none;
+  border: 1px solid #2b5278;
+  color: #ddd; font-size: 15px; cursor: pointer;
+  width: 36px; height: 36px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  transition: border-color .2s, background .2s;
+}
+.audio-play-btn:hover { background: #2d2d2d; border-color: #888; }
+.audio-play-btn:disabled { opacity: .5; cursor: default; }
+.audio-info { flex: 1; overflow: hidden; min-width: 0; }
+.audio-filename {
+  font-size: 12px; font-weight: 600;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  margin-bottom: 4px;
+}
+.audio-progress-row {
+  display: flex; align-items: center; gap: 5px;
+}
+.audio-time-cur, .audio-time-dur {
+  font-size: 11px; color: #aaa; flex-shrink: 0; min-width: 30px;
+}
+.audio-time-dur { text-align: right; }
+.audio-slider {
+  flex: 1; height: 3px; accent-color: #7b68ee; cursor: pointer;
+  min-width: 0;
+}
+.audio-slider:disabled { opacity: .4; cursor: default; }
+
+/* ── Reactions ── */
+
+/* Message footer: reactions left, time right — single row */
+.msg-footer {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 6px;
+  margin-top: 4px;
+  flex-wrap: wrap;          /* if tight — time wraps */
+}
+
+.msg-reactions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  flex: 1;                  /* takes free space on left */
+}
+
+/* msg-meta is now inside msg-footer — removed separate margin */
+.msg-footer .msg-meta {
+  margin-top: 0;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.msg-meta-sep {
+  color: #666;
+  margin: 0 2px;
+}
+
+/* Reaction pill */
+.reaction-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.15);
+  border-radius: 12px;
+  padding: 2px 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background .15s, border-color .15s;
+  color: inherit;
+  line-height: 1.4;
+}
+.reaction-pill:hover { background: rgba(255,255,255,.15); border-color: rgba(255,255,255,.3); }
+
+/* My reaction — highlighted */
+.reaction-pill.reaction-mine {
+  background: rgba(94,138,226,.25);
+  border-color: rgba(94,138,226,.6);
+}
+.reaction-pill.reaction-mine:hover { background: rgba(94,138,226,.35); }
+
+/* Add reaction button — hidden, visible on message hover */
+.reaction-add {
+  opacity: 0;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  padding: 2px 6px;
+  font-size: 14px;
+  cursor: pointer;
+  color: #888;
+  transition: opacity .15s, background .15s, border-color .15s;
+  line-height: 1.4;
+}
+.msg:hover .reaction-add,
+.msg:focus-within .reaction-add { opacity: 1; }
+.reaction-add:hover { background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.2); color: #ccc; }
+
+/* Emoji picker popup */
+.reaction-picker-popup {
+  position: fixed;
+  z-index: 1000;
+  background: #2a2a2a;
+  border: 1px solid #444;
+  border-radius: 12px;
+  padding: 6px 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  max-width: min(320px, 90vw);
+  box-shadow: 0 4px 16px rgba(0,0,0,.5);
+}
+.reaction-picker-popup button {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  transition: background .1s;
+  line-height: 1;
+}
+.reaction-picker-popup button:hover { background: rgba(255,255,255,.1); }
+
+/* ── Markdown toolbar ── */
+#md-toolbar {
+  display: flex; gap: 4px; padding: 4px 0 6px;
+  flex-wrap: wrap;
+}
+#md-toolbar button {
+  padding: 3px 8px; font-size: 12px; min-height: 28px;
+  background: #1e1e1e; border: 1px solid #444; border-radius: 4px;
+  color: #aaa; cursor: pointer; transition: color .12s, border-color .12s;
+  line-height: 1;
+}
+#md-toolbar button:hover { color: #9cdcfe; border-color: #666; }
+#md-toolbar button b    { font-weight: 700; }
+#md-toolbar button i    { font-style: italic; }
+#md-toolbar button s    { text-decoration: line-through; }
+#md-toolbar button code { font-family: monospace; font-size: 11px; }
+
+/* ── Markdown in message body ── */
+.md-body { word-break: break-word; }
+.md-body p          { margin: 0 0 6px; }
+.md-body p:last-child { margin-bottom: 0; }
+.md-body strong, .md-body b { font-weight: 700; color: inherit; }
+.md-body em, .md-body i     { font-style: italic; }
+.md-body del, .md-body s    { text-decoration: line-through; opacity: .8; }
+.md-body code {
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 12px; background: #1a1a2e; border: 1px solid #333;
+  border-radius: 3px; padding: 1px 5px;
+}
+.md-body pre {
+  background: #1a1a2e; border: 1px solid #333; border-radius: 6px;
+  padding: 10px 12px; overflow-x: auto; margin: 6px 0;
+}
+.md-body pre code {
+  background: none; border: none; padding: 0; font-size: 12px;
+}
+.md-body blockquote {
+  border-left: 3px solid #4ec9b0; margin: 6px 0;
+  padding: 2px 10px; color: #888; font-style: italic;
+}
+.md-body ul, .md-body ol {
+  margin: 4px 0; padding-left: 20px;
+}
+.md-body li { margin-bottom: 2px; }
+.md-body a {
+  color: #9cdcfe; text-decoration: underline;
+}
+.md-body a:hover { color: #b8e0ff; }
+
+/* ─── KartaJS: marker popup in chat ─────────────────────── */
+.location-map-bubble .kjs-markers-container .marker .popup {
+  color: #111;
+}

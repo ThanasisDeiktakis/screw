@@ -1,0 +1,23 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "spot.js",
+  "scripts": {
+    "start": "node spot.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.1024.0",
+    "@aws-sdk/s3-request-presigner": "^3.1024.0",
+    "better-sqlite3": "^12.8.0",
+    "dotenv": "^17.3.1",
+    "express": "^4.22.1",
+    "jsonwebtoken": "^9.0.3",
+    "web-push": "^3.6.7",
+    "ws": "^8.20.0"
+  }
+}

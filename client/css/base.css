@@ -1,0 +1,74 @@
+/* ── Splash screen ── */
+#splash-screen {
+  position: fixed;
+  inset: 0;
+  background: #1e1e1e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  transition: opacity 0.3s ease;
+}
+#splash-screen img {
+  width: 160px;
+  height: 160px;
+  border-radius: 24px;
+}
+#splash-screen.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ── Avatars (identicon) (identicon) ── */
+.avatar-xs { border-radius: 3px; flex-shrink: 0; }
+.avatar-sm { border-radius: 4px; flex-shrink: 0; }
+.avatar-md { border-radius: 6px; flex-shrink: 0; }
+
+/* ── Badge: pending ── */
+.contact-badge-pending {
+  font-size: 9px; background: #264f78; color: #9cdcfe;
+  border-radius: 3px; padding: 1px 4px; margin-left: 4px; vertical-align: middle;
+}
+
+/* ── Empty states in popups ── */
+.contacts-popup-empty {
+  color: #555; font-size: 12px; padding: 8px 0;
+}
+
+* { box-sizing: border-box; }
+html { height: 100%; overflow: hidden; }
+body { font-family: monospace; margin: 0; background: #0e1621; color: #d4d4d4; display: flex; height: 100vh; height: 100dvh; overflow: hidden; }
+h2   { color: #9cdcfe; margin-top: 0; }
+label { display: block; margin: 10px 0 4px; color: #9cdcfe; }
+
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), textarea {
+  width: 100%;
+  background: #2d2d2d; border: 1px solid #444; color: #d4d4d4;
+  padding: 6px 8px; border-radius: 4px; font-family: monospace; font-size: 14px;
+}
+textarea { height: 80px; resize: vertical; }
+
+button {
+  margin-top: 16px; padding: 8px 24px;
+  background: #0e639c; border: none; color: #fff;
+  border-radius: 4px; font-size: 14px; cursor: pointer;
+}
+button:hover { background: #1177bb; }
+
+.ok  { border-color: #4ec9b0; }
+.err { border-color: #f44747; }
+
+.badge {
+  display: inline-block; font-size: 11px; padding: 1px 6px;
+  border-radius: 3px; margin-left: 6px; vertical-align: middle;
+}
+.badge-new  { background: #264f78; color: #9cdcfe; }
+.badge-ok   { background: #1e3a1e; color: #4ec9b0; }
+
+#identity {
+  margin-bottom: 24px; padding: 10px 12px; border-radius: 4px;
+  background: #2d2d2d; border: 1px solid #555; font-size: 13px;
+  line-height: 1.7;
+}
+#identity span { color: #ce9178; }
+

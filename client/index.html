@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Screw</title>
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/messages.css">
+  <link rel="stylesheet" href="css/modals.css">
+  <link rel="stylesheet" href="css/mobile.css">
+  <link rel="stylesheet" href="css/karta.css">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <meta name="theme-color" content="#1e1e1e">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Screw">
+</head>
+<body>
+
+<!-- ── Splash screen ── -->
+<div id="splash-screen">
+  <img src="icons/icon-512.png" alt="Screw">
+</div>
+
+<!-- ── Sidebar: conversations ── -->
+<div id="sidebar">
+  <div id="contacts-title">
+    <h3 data-i18n="sidebar.conversations">Conversations</h3>
+    |
+    <h3 id="btn-open-contacts" onclick="openContactsPopup()" title="Contacts" data-i18n="sidebar.contacts">Contacts</h3>
+  </div>
+  <div id="contact-list">
+    <div class="contact-list-empty" data-i18n="sidebar.empty">empty</div>
+  </div>
+  <div class="sidebar-footer">
+    <button class="btn-settings" onclick="openSettings()" data-i18n="sidebar.settings">⚙ Settings</button>
+  </div>
+</div>
+
+<!-- ── Main area ── -->
+<div id="main">
+  <div id="chat-area">
+    <div id="chat-header">
+      <button id="btn-back" onclick="backToContacts()" title="Back">◄</button>
+      <div id="inbox-status" data-i18n="waiting">waiting…</div>
+    </div>
+    <div id="inbox"></div>
+  </div>
+
+  <div id="send-area">
+    <input id="message_id" type="hidden">
+    <input id="timestamp" type="hidden">
+    <input id="to" type="hidden">
+    <!-- File preview (hidden until file selected) -->
+    <div id="file-preview-bar" style="display:none;">
+      <div id="file-preview-content"></div>
+      <button class="file-preview-cancel" id="btn-file-cancel" onclick="cancelFileAttach()" title="Cancel">✕</button>
+    </div>
+    <!-- Formatting toolbar (hidden — future) -->
+    <div id="md-toolbar" style="display:none;">
+      <button type="button" onclick="mdWrap('**','**')"         title="Bold"><b>B</b></button>
+      <button type="button" onclick="mdWrap('_','_')"           title="Italic"><i>I</i></button>
+      <button type="button" onclick="mdWrap('~~','~~')"         title="Strikethrough"><s>S</s></button>
+      <button type="button" onclick="mdWrap('`','`')"           title="Code"><code>&lt;/&gt;</code></button>
+      <button type="button" onclick="mdWrapBlock('```','```')"  title="Code block">⌨</button>
+      <button type="button" onclick="mdWrapLines('> ')"         title="Quote">❝</button>
+      <button type="button" onclick="mdWrapLines('- ')"         title="List">☰</button>
+      <button type="button" onclick="mdInsertLink()"            title="Link">🔗</button>
+    </div>
+    <div class="send-row">
+      <div class="attach-wrap" id="attach-wrap">
+        <button class="btn-attach" id="btn-attach" onclick="toggleAttachMenu()" title="Attach" data-i18n-title="attach">＋</button>
+        <div class="attach-menu" id="attach-menu" style="display:none;">
+          <button id="btn-attach-file" onclick="openFilePicker()" data-i18n="attach.file">📎 File</button>
+          <button onclick="openLocationPicker()" data-i18n="attach.location">📍 Location</button>
+          <button class="disabled" title="Soon" disabled>👤 Contact</button>
+        </div>
+      </div>
+      <div id="emoji-picker-wrap">
+        <button id="emoji-btn" type="button" title="Emoji">🙂</button>
+        <div id="emoji-panel">
+          <span>😊</span><span>😢</span><span>😂</span><span>😳</span><span>😭</span>
+          <span>😔</span><span>😉</span><span>🥺</span><span>😎</span><span>🤔</span>
+          <span>😴</span><span>😱</span><span>😠</span><span>👍</span><span>👎</span>
+          <span>💯</span><span>❤️</span><span>🔥</span><span>🎉</span><span>🙏</span>
+        </div>
+      </div>
+      <textarea id="payload" rows="1" placeholder="Type a message…" data-i18n-placeholder="chat.placeholder"></textarea>
+      <button class="btn-send" id="btn-send" onclick="send()" title="Send" data-i18n-title="send">◥</button>
+    </div>
+  </div>
+
+  <div id="no-key-notice" style="display:none;">
+    <span data-i18n="chat.noKeyWarning">⚠ Public key unknown — sending disabled.</span>
+  </div>
+</div>
+
+<!-- ── Modal: create group / channel ── -->
+<div class="modal-overlay" id="modal-create-group">
+  <div class="modal modal-wide">
+    <button class="modal-close-btn" onclick="closeCreateGroup()" title="Close">✕</button>
+    <h3 id="create-group-title" data-i18n="group.createTitle">👥 Create group</h3>
+    <input type="hidden" id="create-group-type" value="group">
+    <label data-i18n="group.topicLabel">Name</label>
+    <input id="create-group-topic" placeholder="Group name" data-i18n-placeholder="group.topicPlaceholder">
+    <div class="modal-section">
+      <div class="modal-section-label" data-i18n="group.addMembers">Add members</div>
+      <div id="create-group-members"></div>
+    </div>
+    <div id="create-group-error" class="modal-error"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeCreateGroup()" data-i18n="cancel">Cancel</button>
+      <button onclick="saveCreateGroup()" data-i18n="create">Create</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Modal: rename ── -->
+<div class="modal-overlay" id="modal-rename">
+  <div class="modal">
+    <button class="modal-close-btn" onclick="closeRenameModal()" title="Close">✕</button>
+    <h3 id="rename-title" data-i18n="rename">Rename</h3>
+    <input id="rename-input" maxlength="64" autocomplete="off">
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeRenameModal()" data-i18n="cancel">Cancel</button>
+      <button class="btn-primary" onclick="confirmRename()" data-i18n="save">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Modal: group members ── -->
+<div class="modal-overlay" id="modal-group-members">
+  <div class="modal modal-wide">
+    <button class="modal-close-btn" onclick="closeGroupMembers()" title="Close">✕</button>
+    <h3 id="group-members-title" data-i18n="group.membersTitle">👥 Members</h3>
+    <div id="group-members-list"></div>
+    <div id="group-add-member" style="display:none;">
+      <div class="modal-section-label" data-i18n="group.addMember">Add member</div>
+      <div id="group-add-member-list"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeGroupMembers()" data-i18n="close">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Modal: add by address ── -->
+<div class="modal-overlay" id="modal-add-by-addr">
+  <div class="modal">
+    <button class="modal-close-btn" onclick="closeAddByAddress()" title="Close">✕</button>
+    <h3 data-i18n="contact.addByAddress">Add contact by address</h3>
+    <label data-i18n="contact.nameLabel">Name (display)</label>
+    <input id="modal-addr-name" placeholder="optional — will use name from handshake">
+    <label data-i18n="contact.addressHexLabel">Address (32 hex characters)</label>
+    <input id="modal-addr-input" placeholder="d57e023883b589a5c4f1a2b3c4d5e6f7" maxlength="64">
+    <div id="modal-addr-error" class="modal-error"></div>
+    <div class="modal-hint">
+      <span data-i18n="contact.handshakeHint1">We will send our public key (handshake).</span><br>
+      <span data-i18n="contact.handshakeHint2">They will respond with theirs — then you can chat.</span>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeAddByAddress()" data-i18n="cancel">Cancel</button>
+      <button onclick="saveByAddress()" data-i18n="contact.sendHandshake">Send handshake</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Modal: contacts popup ── -->
+<div class="modal-overlay" id="modal-contacts-popup">
+  <div class="modal modal-wide">
+    <button class="modal-close-btn" onclick="closeContactsPopup()" title="Close">✕</button>
+    <h3 data-i18n="sidebar.contacts">👥 Contacts</h3>
+    <div class="contacts-popup-actions">
+      <button onclick="closeContactsPopup(); openAddByAddress()" class="btn-action-edit" data-i18n="contact.addButton">+ Add contact</button>
+      <button onclick="closeContactsPopup(); openCreateGroup('group')" class="btn-action-add" data-i18n="group.createButton">👥 Create group</button>
+      <!-- <button onclick="closeContactsPopup(); openCreateGroup('channel')">📢 Create channel</button> -->
+    </div>
+    <div id="contacts-popup-list"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeContactsPopup()" data-i18n="close">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Modal: edit contact ── -->
+<div class="modal-overlay" id="modal-edit-contact">
+  <div class="modal">
+    <button class="modal-close-btn" onclick="closeEditContact()" title="Close">✕</button>
+    <h3 data-i18n="contact.editTitle">Edit contact</h3>
+    <label>Name (display)</label>
+    <input id="modal-edit-name" placeholder="John Doe">
+    <div id="modal-edit-addr" class="modal-hint"></div>
+    <div class="modal-actions modal-actions-split">
+      <button class="btn-action-block" onclick="blockContact()" data-i18n="contact.blockButton">🚫 Block</button>
+      <div class="modal-actions-split-right">
+        <button class="btn-cancel" onclick="closeEditContact()" data-i18n="cancel">Cancel</button>
+        <button onclick="saveEditContact()" data-i18n="save">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Modal: location picker ── -->
+<div class="modal-overlay" id="modal-location-picker">
+  <div class="modal modal-wide">
+    <button class="modal-close-btn" onclick="closeLocationPicker()" title="Close">✕</button>
+    <h3 data-i18n="location.title">📍 Send location</h3>
+    <div id="location-picker-map" style="width:100%;height:320px;border-radius:8px;overflow:hidden;margin-bottom:12px;"></div>
+    <div id="location-picker-coords" style="font-size:13px;color:#aaa;margin-bottom:12px;" data-i18n="location.noCoords">no coordinates selected</div>
+    <div style="display:flex;gap:8px;" onclick="event.stopPropagation()">
+      <button onclick="locationPickerUseMyPos()" data-i18n="location.myLocation">📡 My location</button>
+      <button onclick="locationPickerSend()" id="btn-location-send" disabled data-i18n="location.send">📤 Send</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Modal: settings ── -->
+<div class="modal-overlay" id="modal-settings">
+  <div class="modal modal-wide">
+    <button class="modal-close-btn" onclick="closeSettings()" title="Close">✕</button>
+    <h3 data-i18n="settings.title">⚙ Settings</h3>
+
+    <!-- Tabs -->
+    <div class="settings-tabs">
+      <button class="settings-tab active" id="tab-btn-settings" onclick="switchSettingsTab('settings')" data-i18n="settings.tabMain">General</button>
+      <button class="settings-tab" id="tab-btn-data" onclick="switchSettingsTab('data')" data-i18n="settings.tabData">Data</button>
+      <button class="settings-tab" id="tab-btn-logs" onclick="switchSettingsTab('logs')" data-i18n="settings.tabLogs">Logs</button>
+    </div>
+
+    <!-- Tab: General -->
+    <div id="tab-settings">
+
+    <div class="settings-identity">
+      <img id="settings-avatar" src="" alt="avatar" width="56" height="56">
+      <div class="settings-address-block">
+        <div class="settings-address-label" data-i18n="settings.yourAddress">Your address</div>
+        <div id="settings-address" title="Click to copy" onclick="copySettingsAddress()"></div>
+        <div id="settings-copy-hint" data-i18n="settings.addressHint">click address to copy</div>
+      </div>
+    </div>
+
+    <div class="settings-section" id="install-section" style="display:none;">
+      <div class="settings-section-label" data-i18n="settings.app">App</div>
+      <button id="btn-install-pwa" onclick="installPWA()" data-i18n="settings.installPwa">📲 Install to home screen</button>
+      <div class="settings-hint" data-i18n="settings.installHint">Add Screw to home screen for quick access.</div>
+    </div>
+    <div class="settings-section" id="install-ios-hint" style="display:none;">
+      <div class="settings-section-label">App</div>
+      <div class="ios-install-hint">
+        <span data-i18n="settings.iosInstall1">📲 To install Screw on iPhone:</span><br>
+        tap <b>⎋ Share</b> → <b>Add to Home Screen</b>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-section-label" data-i18n="settings.shareAddress">Share address</div>
+      <div class="share-row">
+        <div id="qr-canvas-wrap">
+          <canvas id="qr-canvas" width="160" height="160" title="Your address QR code"></canvas>
+        </div>
+        <div class="share-actions">
+          <button class="btn-secondary-settings" onclick="copyShareLink()" data-i18n="settings.copyLink">🔗 Copy link</button>
+          <button class="btn-secondary-settings" id="btn-web-share" onclick="webShareAddress()" style="display:none;" data-i18n="settings.share">📤 Share…</button>
+          <div id="share-copy-hint" class="settings-hint"></div>
+          <div class="settings-hint"><span data-i18n="settings.shareHint">Open the link or QR code on your contact's device to add you.</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-section-label" data-i18n="settings.yourName">Your name</div>
+      <div class="settings-name-row">
+        <input id="settings-my-name" placeholder="What's your name?">
+        <button onclick="saveMyName()" data-i18n="save">Save</button>
+      </div>
+      <div id="settings-name-hint"></div>
+      <div class="settings-hint" data-i18n="settings.nameHint">Name is shared with contacts in plain text during key exchange.</div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-section-label" data-i18n="settings.language" data-i18n="settings.language">Language</div>
+      <select id="settings-lang" onchange="setLang(this.value)" class="settings-select">
+        <option value="en">English</option>
+        <option value="el">Ελληνικά</option>
+        <option value="ru">Русский</option>
+      </select>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-section-label" data-i18n="settings.notifications">Notifications</div>
+      <button id="btn-push-subscribe" class="btn-push-subscribe" onclick="enablePushNotifications()" data-i18n="push.enable">🔔 Enable push notifications</button>
+      <div id="push-status"></div>
+      <div class="settings-hint"><span data-i18n="settings.pushHint">💡 On mobile devices the OS may terminate the browser in background to save energy. If notifications don't arrive when the app is closed — disable battery optimization for your browser in phone settings.</span></div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeSettings()" data-i18n="close">Close</button>
+    </div>
+    </div><!-- /tab-settings -->
+
+    <!-- Tab: Data -->
+    <div id="tab-data" style="display:none;">
+
+    <div class="settings-section">
+      <div class="settings-section-label" data-i18n="settings.privacy">Privacy</div>
+      <div class="privacy-list">
+        <label class="privacy-option">
+          <input type="checkbox" id="setting-sync-contacts" onchange="savePrivacySettings()">
+          <div>
+            <div class="privacy-option-title" data-i18n="settings.syncContactsTitle">Store contacts on server</div>
+            <div class="privacy-option-desc"><span data-i18n="settings.syncContactsDesc">Required for syncing contacts between devices. When disabled, contacts are stored only on this device.</span></div>
+          </div>
+        </label>
+        <label class="privacy-option">
+          <input type="checkbox" id="setting-sync-messages" onchange="savePrivacySettings()">
+          <div>
+            <div class="privacy-option-title" data-i18n="settings.syncMessagesTitle">Store message history on server</div>
+            <div class="privacy-option-desc"><span data-i18n="settings.syncMessagesDesc">Allows receiving missed messages after being offline. When disabled — only via real-time WebSocket.</span></div>
+          </div>
+        </label>
+        <label class="privacy-option">
+          <input type="checkbox" id="setting-show-system-messages" onchange="savePrivacySettings()">
+          <div>
+            <div class="privacy-option-title" data-i18n="settings.showSystemTitle">Show system messages</div>
+            <div class="privacy-option-desc"><span data-i18n="settings.showSystemDesc">Key exchange messages (handshakes) in chats. Hidden by default.</span></div>
+          </div>
+        </label>
+      </div>
+      <div id="privacy-hint"></div>
+    </div>
+
+    <div class="settings-section settings-danger">
+      <div class="settings-section-label" data-i18n="settings.data">Data</div>
+      <div class="settings-data-list">
+        <button class="btn-data-action" onclick="exportDump()" data-i18n="settings.exportDump">⬇ Export dump — download backup</button>
+        <label class="btn-import-dump">
+          <span data-i18n="settings.importDump">⬆ Import dump — restore from file</span>
+          <input type="file" id="import-file-input" accept=".json" style="display:none;" onchange="importDump(this)">
+        </label>
+        <button class="btn-data-action" onclick="hardReload()" data-i18n="settings.refreshApp">🔄 Refresh app — clear cache and reload</button>
+      </div>
+    </div>
+
+    <div class="settings-danger">
+      <div class="settings-section-label" data-i18n="settings.dangerZone">Danger zone</div>
+      <button class="btn-reset-all" onclick="resetAll()" data-i18n="settings.resetAll">⚠ Reset everything — delete keys, contacts and history</button>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeSettings()" data-i18n="close">Close</button>
+    </div>
+    </div><!-- /tab-data -->
+
+    <!-- Tab: Logs -->
+    <div id="tab-logs" style="display:none;">
+      <div class="logs-toolbar">
+        <button onclick="clearAppLogs()" data-i18n="settings.logsClear">🗑 Clear</button>
+        <button onclick="copyAppLogs()" data-i18n="settings.logsCopy">📋 Copy</button>
+        <button onclick="showSwLog()" data-i18n="settings.logsSwLog">📡 SW log</button>
+      </div>
+      <div id="app-log-output"></div>
+    </div><!-- /tab-logs -->
+
+  </div>
+</div>
+
+<!-- ── Modal: welcome (first run) ── -->
+<div class="modal-overlay" id="modal-welcome">
+  <div class="modal modal-narrow">
+    <div class="welcome-lang-row">
+      <select id="welcome-lang" onchange="setLang(this.value, true)" class="settings-select">
+        <option value="en">English</option>
+        <option value="el">Ελληνικά</option>
+        <option value="ru">Русский</option>
+      </select>
+    </div>
+    <h3 data-i18n="welcome.title">👋 Welcome to Screw</h3>
+    <p class="welcome-desc" data-i18n="welcome.desc">Decentralized messenger with E2E encryption. Your keys are generated in the browser and never leave your device.</p>
+    <div class="settings-section">
+      <label class="settings-section-label" data-i18n="welcome.nameLabel">Your name</label>
+      <input id="welcome-name" placeholder="What's your name? (optional)" data-i18n-placeholder="welcome.namePlaceholder">
+      <div class="welcome-name-hint" data-i18n="welcome.nameHint">
+        ⚠ Name is shared in plain text during key exchange. Only use what you are comfortable revealing.
+      </div>
+    </div>
+    <div class="modal-actions welcome-actions">
+      <button class="btn-welcome-start" onclick="welcomeStart()" data-i18n="welcome.createAccount">🔑 Create new account</button>
+      <label class="btn-import-dump" data-i18n="welcome.restoreDump">
+        ⬆ Restore from dump
+        <input type="file" id="welcome-import-input" accept=".json" style="display:none;" onchange="welcomeImport(this)">
+      </label>
+    </div>
+  </div>
+</div>
+
+<script src="js/karta.js"></script>
+<script src="js/i18n.js"></script>
+<script src="config.js"></script>
+<script src="js/marked.min.js"></script>
+<script src="js/purify.min.js"></script>
+<script src="js/qrcode.min.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/logger.js"></script>
+<script src="js/app.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/crypto.js"></script>
+<script src="js/identity.js"></script>
+<script src="js/messages.js"></script>
+<script src="js/contacts.js"></script>
+<script src="js/groups.js"></script>
+<script src="js/ui.js"></script>
+<script>
+
+// ─── DOM event handlers ─────────────────────────────────────────────────
+document.getElementById('modal-contacts-popup').addEventListener('click', function(e) {
+  if (e.target === this) closeContactsPopup();
+});
+document.getElementById('modal-create-group').addEventListener('click', function(e) {
+  if (e.target === this) closeCreateGroup();
+});
+document.getElementById('modal-group-members').addEventListener('click', function(e) {
+  if (e.target === this) closeGroupMembers();
+});
+document.getElementById('modal-rename').addEventListener('click', function(e) {
+  if (e.target === this) closeRenameModal();
+});
+document.getElementById('rename-input').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') { e.preventDefault(); confirmRename(); }
+  if (e.key === 'Escape') closeRenameModal();
+});
+document.getElementById('modal-add-by-addr').addEventListener('click', function(e) {
+  if (e.target === this) closeAddByAddress();
+});
+document.getElementById('modal-edit-contact').addEventListener('click', function(e) {
+  if (e.target === this) closeEditContact();
+});
+document.getElementById('modal-location-picker').addEventListener('click', function(e) {
+  if (e.target === this) closeLocationPicker();
+});
+document.getElementById('modal-settings').addEventListener('click', function(e) {
+  if (e.target === this) closeSettings();
+});
+document.getElementById('payload').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    // On touch devices Enter = newline
+    if (!isTouchDevice()) { e.preventDefault(); send(); }
+  }
+});
+
+// ── Close active modal on Escape ──
+document.addEventListener('keydown', function(e) {
+  if (e.key !== 'Escape') return;
+  const modals = document.querySelectorAll('.modal-overlay.show');
+  if (!modals.length) return;
+  // Close the topmost open modal
+  const top = modals[modals.length - 1];
+  const closeBtn = top.querySelector('.modal-close-btn');
+  if (closeBtn) closeBtn.click();
+});
+
+// ─── Ctrl+↑/↓ — switch conversations ──────────────────────────────────
+document.addEventListener('keydown', function(e) {
+  if (!e.ctrlKey || (e.key !== 'ArrowUp' && e.key !== 'ArrowDown')) return;
+  e.preventDefault();
+
+  const contacts = loadContacts();
+  const convs = loadConversations().filter(conv => {
+    if (!conv.peerAddress) return true;
+    const contact = contacts.find(c => c.address === conv.peerAddress);
+    return contact && contact.status !== 'blocked';
+  });
+  if (!convs.length) return;
+
+  const currentIdx = convs.findIndex(c => c.conversation_id === _activeConvId);
+  let nextIdx;
+  if (e.key === 'ArrowUp') {
+    nextIdx = currentIdx <= 0 ? convs.length - 1 : currentIdx - 1;
+  } else {
+    nextIdx = currentIdx >= convs.length - 1 ? 0 : currentIdx + 1;
+  }
+
+  const next = convs[nextIdx];
+  openConversation(next.conversation_id, next.peerAddress || null);
+});
+
+// ─── Auto-height textarea (1–3 rows) ───────────────────────────────────
+function autoResizePayload() {
+  const ta = document.getElementById('payload');
+  if (!ta) return;
+  ta.style.height = 'auto';
+  ta.style.height = ta.scrollHeight + 'px';
+}
+document.getElementById('payload').addEventListener('input', autoResizePayload);
+
+// ─── Paste image from clipboard (Ctrl+V in textarea) ───────────────────
+document.getElementById('payload').addEventListener('paste', function(e) {
+  const items = (e.clipboardData || e.originalEvent && e.originalEvent.clipboardData || {}).items;
+  if (!items) return;
+  for (const item of items) {
+    if (item.kind === 'file' && item.type.startsWith('image/')) {
+      e.preventDefault();
+      const file = item.getAsFile();
+      if (!file) return;
+      // Give file a meaningful name
+      const ext  = item.type.split('/')[1] || 'png';
+      const name = 'image_' + Date.now() + '.' + ext;
+      const namedFile = new File([file], name, { type: item.type });
+      _setPendingFile(namedFile);
+      return;
+    }
+  }
+});
+
+// ─── Emoji picker ────────────────────────────────────────────────────────
+(function () {
+  const btn   = document.getElementById('emoji-btn');
+  const panel = document.getElementById('emoji-panel');
+  const wrap  = document.getElementById('emoji-picker-wrap');
+  const ta    = document.getElementById('payload');
+
+  // Position panel above button
+  function positionPanel() {
+    const r = btn.getBoundingClientRect();
+    panel.style.left   = r.left + 'px';
+    panel.style.top    = (r.top - panel.offsetHeight - 6) + 'px';
+  }
+
+  function openPanel() {
+    panel.classList.add('open');
+    // offsetHeight is correct only after panel is visible
+    requestAnimationFrame(positionPanel);
+  }
+
+  function closePanel() {
+    panel.classList.remove('open');
+  }
+
+  // Toggle on button click
+  btn.addEventListener('click', function (e) {
+    e.stopPropagation();
+    if (panel.classList.contains('open')) {
+      closePanel();
+    } else {
+      openPanel();
+    }
+  });
+
+  // Click on emoji — insert at cursor, keep panel open
+  panel.addEventListener('click', function (e) {
+    const span = e.target.closest('span');
+    if (!span) return;
+    const emoji = span.textContent;
+    const start = ta.selectionStart ?? ta.value.length;
+    const end   = ta.selectionEnd   ?? ta.value.length;
+    ta.value = ta.value.slice(0, start) + emoji + ta.value.slice(end);
+    const pos = start + emoji.length;
+    ta.focus();
+    ta.setSelectionRange(pos, pos);
+    autoResizePayload();
+    // Reposition (textarea may have grown)
+    requestAnimationFrame(positionPanel);
+  });
+
+  // Close when mouse leaves button + panel area
+  let _leaveTimer = null;
+
+  function scheduleClose() {
+    _leaveTimer = setTimeout(closePanel, 200);
+  }
+  function cancelClose() {
+    clearTimeout(_leaveTimer);
+  }
+
+  wrap.addEventListener('mouseleave', scheduleClose);
+  wrap.addEventListener('mouseenter', cancelClose);
+  panel.addEventListener('mouseleave', scheduleClose);
+  panel.addEventListener('mouseenter', cancelClose);
+
+  // Close on click outside picker
+  document.addEventListener('click', function (e) {
+    if (!wrap.contains(e.target) && !panel.contains(e.target)) {
+      closePanel();
+    }
+  });
+
+  // Reposition on scroll/resize
+  window.addEventListener('resize', () => { if (panel.classList.contains('open')) positionPanel(); });
+  document.addEventListener('scroll', () => { if (panel.classList.contains('open')) positionPanel(); }, true);
+})();
+
+// ─── Welcome screen ──────────────────────────────────────────────────────
+function welcomeStart() {
+  const name = document.getElementById('welcome-name').value.trim();
+  setMyName(name);
+  document.getElementById('modal-welcome').classList.remove('show');
+  appStart();
+}
+
+function welcomeImport(input) {
+  // Hide welcome and delegate to importDump
+  document.getElementById('modal-welcome').classList.remove('show');
+  importDump(input);
+}
+
+// ─── Start ───────────────────────────────────────────────────────────────
+async function appStart() {
+
+  // Load server config (non-blocking)
+  fetch(`${SERVER_URL}/config`)
+    .then(r => r.ok ? r.json() : null)
+    .then(cfg => { if (cfg) { window.serverConfig = cfg; initMessagesConfig(); } })
+    .catch(e => console.warn('[config] failed to load server config:', e));
+
+  loadMessages();
+  loadReactions();
+  rebuildConversationsIfNeeded();
+  loadUnreadCounts();
+  // Fix conversations with missing peerAddress
+  await fixMissingPeerAddresses(_address);
+  renderConversations();
+  restoreLastContact();
+  // ResizeObserver on #inbox for scroll on image load
+  _setupInboxScrollObserver();
+  // Authorize first, then everything else
+  try {
+    await registerDevice();
+  } catch (e) {
+    console.warn('[auth] registration failed:', e);
+  }
+  notifySwAuth(); // pass token to SW
+  startPolling();           // WS + polling — after token
+  syncContactsFromServer().then(() => {
+    // After loading contacts fix missing peerAddress
+    fixMissingPeerAddresses(_address).then(() => renderConversations());
+  });
+  // Push: if permission granted — silently restore subscription
+  // Needed after hardReload() which unregisters SW,
+  // and on mobile where browser may kill subscription
+  if (Notification.permission === 'granted') {
+    // Wait for SW to activate, then try subscribe
+    // On mobile SW may activate with delay
+    const _tryRestorePush = (attempt) => {
+      subscribeToPush()
+        .then(() => console.log('[push] subscription restored'))
+        .catch(e => {
+          console.warn('[push] auto-restore failed (attempt ' + attempt + '):', e.message);
+          // If SW not ready — retry in 3s, max 3 attempts
+          if (attempt < 3 && (e.message === 'sw-not-ready' || e.message === 'sw-activate-timeout' || e.message === 'timeout: serviceWorker.ready')) {
+            setTimeout(() => _tryRestorePush(attempt + 1), 3000);
+          }
+        });
+    };
+    // Small delay for SW to activate after registration
+    setTimeout(() => _tryRestorePush(1), 1000);
+  }
+
+  // ── Handle pending_add: /?pending_add=<addr>&pending_name=<name> ──────────
+  // Also handles web+screw://add/<addr>?name=<name>
+  _handlePendingAdd();
+}
+
+// ─── Replace generic notification with decrypted ───────────────────────────────
+// Called after PUSH_RECEIVED when fetchInbox() delivered and decrypted message.
+// Finds message by message_id, creates detailed notification
+// with same tag — browser replaces generic with detailed.
+function _tryReplaceNotification(msgId) {
+  if (!msgId) return;
+
+  // If tab is active and visible — just close generic
+  if (document.visibilityState === 'visible') {
+    navigator.serviceWorker.ready
+      .then(reg => reg.getNotifications({ tag: `screw-msg-${msgId}` }))
+      .then(list => list.forEach(n => n.close()))
+      .catch(() => {});
+    return;
+  }
+
+  const msg = _allMessages.find(m => m.message_id === msgId);
+  if (!msg || msg.isMine) return;
+
+
+  const contacts = loadContacts();
+  const contact  = contacts.find(c => c.address === msg.from);
+  const fromName = contact?.name || msg.displayName || (msg.from ? msg.from.slice(0, 8) + '…' : 'Message');
+  const text     = (msg.body || '📎 file').slice(0, 100);
+  const tag      = `screw-msg-${msgId}`;
+
+  navigator.serviceWorker.ready
+    .then(reg => reg.showNotification(fromName, {
+      body: text,
+      icon: '/icons/icon-192.png',
+      badge: '/icons/icon-72.png',
+      tag,
+      renotify: true,
+      silent: true,  // silent replacement — sound was from generic
+      data: { message_id: msgId, conversation_id: msg.conversation_id },
+    }))
+    .catch(e => console.warn('[push] failed to replace notification:', e.message));
+}
+
+// ─── Service Worker ───────────────────────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  window._swRegistrationPromise = navigator.serviceWorker.register('/sw.js')
+    .then(reg => { console.log('[sw] registered, scope:', reg.scope); return reg; })
+    .catch(err => { console.warn('[sw] registration error:', err.message || err.name || String(err), err); return null; });
+
+  // SW event messages
+  navigator.serviceWorker.addEventListener('message', event => {
+
+    // SW showed generic notification — replace with decrypted
+    if (event.data && event.data.type === 'PUSH_RECEIVED') {
+      const pushMsgId = event.data.message_id;
+      // Check locally first — WS may have already delivered
+      if (_allMessages.find(m => m.message_id === pushMsgId)) {
+        _tryReplaceNotification(pushMsgId);
+      } else {
+        // Message not found — fetch from server
+        connectWs();
+        fetchInbox().then(() => {
+          _tryReplaceNotification(pushMsgId);
+        }).catch(() => {});
+      }
+    }
+
+    // Notification click when tab is already open —
+    // SW asks to open chat by message_id
+    if (event.data && event.data.type === 'OPEN_MESSAGE') {
+      const msgId = event.data.message_id;
+      fetchInbox().then(() => {
+        const found = _allMessages.find(m => m.message_id === msgId);
+        if (found && found.conversation_id) {
+          _openConversationById(found.conversation_id);
+        } else {
+          setTimeout(() => {
+            const f2 = _allMessages.find(m => m.message_id === msgId);
+            if (f2 && f2.conversation_id) _openConversationById(f2.conversation_id);
+          }, 1000);
+        }
+      }).catch(() => {});
+    }
+  });
+}
+
+// ─── PWA Install ─────────────────────────────────────────────────────────────
+let _pwaInstallPrompt = null;
+
+// iOS Safari — beforeinstallprompt not supported, show instruction
+const _isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
+const _isInStandaloneMode = ('standalone' in navigator && navigator.standalone);
+if (_isIos && !_isInStandaloneMode) {
+  document.getElementById('install-ios-hint').style.display = '';
+}
+
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  _pwaInstallPrompt = e;
+  document.getElementById('install-section').style.display = '';
+});
+
+window.addEventListener('appinstalled', () => {
+  _pwaInstallPrompt = null;
+  document.getElementById('install-section').style.display = 'none';
+});
+
+function installPWA() {
+  if (!_pwaInstallPrompt) return;
+  _pwaInstallPrompt.prompt();
+  _pwaInstallPrompt.userChoice.then(result => {
+    if (result.outcome === 'accepted') {
+      _pwaInstallPrompt = null;
+      document.getElementById('install-section').style.display = 'none';
+    }
+  });
+}
+
+initIdentity().then(async isNew => {
+  await _loadLocale();
+  _applyDomTranslations();
+  document.getElementById('splash-screen').classList.add('hidden');
+  if (isNew) {
+    const wl = document.getElementById('welcome-lang');
+    if (wl) wl.value = window._lang || 'en';
+    document.getElementById('modal-welcome').classList.add('show');
+    setTimeout(() => document.getElementById('welcome-name').focus(), 100);
+  } else {
+    appStart();
+  }
+}).catch(e => {
+  console.error('Init error:', e);
+  document.getElementById('splash-screen').classList.add('hidden');
+  alert('Init error: ' + e.message);
+});
+</script>
+</body>
+</html>

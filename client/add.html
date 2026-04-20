@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Add contact — Screw</title>
+  <link rel="stylesheet" href="css/add.css">
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+  <meta name="theme-color" content="#1e1e1e">
+  <script src="js/i18n.js"></script>
+</head>
+<body>
+
+<div class="logo">
+  <img src="icons/icon-128.png" alt="Screw">
+  <span class="logo-name">Screw</span>
+</div>
+
+<div id="content"></div>
+
+<p class="about">
+  Screw — decentralized messenger with E2E encryption.<br>
+  Keys are generated in the browser and never leave your device.<br>
+  <a href="/">Open Screw</a>
+</p>
+
+<script src="config.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/crypto.js"></script>
+<script>
+// ─── Read URL params ──────────────────────────────────────────────────
+const params  = new URLSearchParams(location.search);
+const addr    = validateAddress(params.get('addr') || '');
+const name    = sanitizeName(params.get('name') || '');
+const content = document.getElementById('content');
+
+if (!addr) {
+  // No address — show error
+  content.innerHTML = `
+    <div class="card error-card">
+      <div class="error-icon">🔗</div>
+      <p>Link does not contain a contact address.</p>
+      <p>Ask your contact to share their link from Screw settings.</p>
+      <a href="/"><button class="btn-primary">Open Screw</button></a>
+    </div>`;
+} else {
+  buildPage(addr, name);
+}
+
+function buildPage(addr, displayName) {
+  const shortAddr = addr.slice(0, 8) + '…' + addr.slice(-8);
+  const avatarUrl = generateIdenticon(addr, 56);
+  const appUrl    = location.origin;
+  const addUrl    = appUrl + '/?pending_add=' + addr + (displayName ? '&pending_name=' + encodeURIComponent(displayName) : '');
+  const webplusUrl = 'web+screw://add/' + addr + (displayName ? '?name=' + encodeURIComponent(displayName) : '');
+
+  content.innerHTML = `
+    <!-- Contact info -->
+    <div class="card">
+      <div class="card-title">👤 Add contact</div>
+      <div class="identity-row">
+        <img src="${avatarUrl}" width="56" height="56">
+        <div class="identity-info">
+          <div class="identity-name">${displayName ? escHtml(displayName) : shortAddr}</div>
+          <div class="identity-addr">${addr}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Block 1: already have Screw -->
+    <div class="card">
+      <div class="card-title">
+        ✅ Already have Screw
+        <span class="badge">quick</span>
+      </div>
+
+      <button class="btn-primary" onclick="openInApp()">📲 Open in app</button>
+
+      <hr class="divider">
+
+      <div class="card-hint">Or copy the address and paste manually:</div>
+      <div class="copy-wrap">
+        <textarea class="copy-input" id="addr-copy" readonly>${addr}</textarea>
+        <button class="btn-copy" onclick="copyAddr()">📋 Copy</button>
+      </div>
+      <div class="copy-ok" id="copy-ok"></div>
+
+      <div class="step-hint">
+        In Screw: <b>Contacts → + Add contact</b> → paste the address.
+      </div>
+    </div>
+
+    <!-- Block 2: no Screw -->
+    <div class="card">
+      <div class="card-title">🆕 No Screw account?</div>
+      <p class="card-desc">
+        Create an account — it takes a few seconds.<br>
+        The contact will be added automatically.
+      </p>
+      <a href="${escHtml(addUrl)}">
+        <button class="btn-primary">🔑 Create account & add contact</button>
+      </a>
+      <div class="step-hint">
+        Click "Create new account" and the contact will be added automatically.
+        You can use any spot — just open your app
+        and add the address manually.
+      </div>
+    </div>
+  `;
+
+  // Save URL for button
+  window._addUrl    = addUrl;
+  window._webplusUrl = webplusUrl;
+  window._addr      = addr;
+}
+
+function openInApp() {
+  // Try web+screw:// — works if PWA installed on desktop
+  // If not — fallback to addUrl in 600ms
+  let opened = false;
+  const iframe = document.createElement('iframe');
+  iframe.style.display = 'none';
+  iframe.src = window._webplusUrl;
+  document.body.appendChild(iframe);
+  setTimeout(() => { if (iframe.parentNode) iframe.parentNode.removeChild(iframe); }, 1000);
+
+  // Parallel fallback
+  setTimeout(() => {
+    if (!opened) {
+      location.href = window._addUrl;
+    }
+  }, 600);
+
+  // If page went to background — do not redirect
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) opened = true;
+  }, { once: true });
+}
+
+function copyAddr() {
+  const ta = document.getElementById('addr-copy');
+  navigator.clipboard.writeText(ta.value).then(() => {
+    const ok = document.getElementById('copy-ok');
+    ok.textContent = '✓ Copied';
+    setTimeout(() => { ok.textContent = ''; }, 2000);
+  }).catch(() => {
+    ta.select();
+    document.execCommand('copy');
+    const ok = document.getElementById('copy-ok');
+    ok.textContent = '✓ Copied';
+    setTimeout(() => { ok.textContent = ''; }, 2000);
+  });
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>
+
