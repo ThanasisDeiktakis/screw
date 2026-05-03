@@ -141,19 +141,17 @@ self.addEventListener('push', event => {
 self.addEventListener('notificationclick', event => {
   event.notification.close();
   const msgId     = event.notification.data && event.notification.data.message_id;
-  const targetPath = msgId ? `/?msg=${encodeURIComponent(msgId)}` : '/';
+  const base      = self.registration.scope;
+  const targetUrl = msgId ? `${base}?msg=${encodeURIComponent(msgId)}` : base;
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
-      const existing = list.find(c => {
-        const u = new URL(c.url);
-        return u.pathname === '/' || u.pathname === '/index.html';
-      });
+      const existing = list.find(c => c.url.startsWith(base));
       if (existing) {
         existing.postMessage({ type: 'OPEN_MESSAGE', message_id: msgId });
         return existing.focus();
       }
-      return clients.openWindow(self.location.origin + targetPath);
+      return clients.openWindow(targetUrl);
     })
   );
 });
