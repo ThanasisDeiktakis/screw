@@ -185,14 +185,15 @@
 
 /* ── Settings: QR + share ── */
 .share-row {
-  display: flex; align-items: flex-start; gap: 16px;
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
 }
+#qr-canvas-wrap { width: 100%; display: flex; justify-content: center; }
 #qr-canvas-wrap canvas {
-  border-radius: 6px; display: block; flex-shrink: 0;
-  background: #ffffff;
+  border-radius: 6px; display: block;
+  background: #ffffff; width: 100%; max-width: 280px; height: auto;
 }
 .share-actions {
-  flex: 1; display: flex; flex-direction: column; gap: 8px;
+  width: 100%; display: flex; flex-direction: column; gap: 8px;
 }
 .btn-secondary-settings {
   background: #2d2d2d; border: 1px solid #444; color: #d4d4d4;

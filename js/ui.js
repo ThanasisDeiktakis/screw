@@ -236,8 +236,11 @@ function renderChat({ keepScroll = false } = {}) {
         : escapeHtml(ts);
 
 
+      const deleteBtn = `<button class="msg-delete" onclick="deleteMessage('${escapeHtml(m.message_id)}')">${t('delete','Delete')}</button>`;
+
       const footer = `<div class="msg-footer">` +
         `<div class="msg-reactions">${reactionsHtml}${addBtn}</div>` +
+        `<div class="msg-actions">${deleteBtn}</div>` +
         `<div class="msg-meta">${metaTs}</div>` +
       `</div>`;
 
@@ -1013,7 +1016,7 @@ async function restoreLastContact() {
 
 
   const lastConvId = localStorage.getItem('screw-last-conv-id');
-  if (lastConvId) {
+  if (lastConvId && window.innerWidth > 600) {
     return await _openConversationById(lastConvId);
   }
 
@@ -1172,7 +1175,7 @@ function generateShareQr() {
     qr.make();
     const canvas = document.getElementById('qr-canvas');
     if (!canvas) return;
-    const size = 160;
+    const size = 280;
     const ctx  = canvas.getContext('2d');
     const cells = qr.getModuleCount();
     const quiet = 4;
@@ -1548,7 +1551,7 @@ function renderFileBubble(meta, messageId) {
 
   if (expired) {
     return {
-      html: `<div class="file-bubble"><div class="file-expiry expired">⏳ ${t('file.expiredServer','File deleted from server')}</div>${captionHtml}</div>`,
+      html: `<div class="file-bubble"><div class="file-expiry expired">${t('file.expiredServer','⏳ File deleted from server')}</div>${captionHtml}</div>`,
       expiryStr,
     };
   }

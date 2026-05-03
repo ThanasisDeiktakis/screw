@@ -202,6 +202,9 @@ async function handleIncomingMessage(msg) {
       } else if (msgType === 'reaction') {
         handleIncomingReaction(envelope);
         return;
+      } else if (msgType === 'delete') {
+        handleIncomingDelete(envelope);
+        return;
       } else {
 
         return;
@@ -346,7 +349,7 @@ function cancelFileAttach() {
   document.getElementById('file-preview-content').innerHTML = '';
 }
 
-// Calledsend() — _pendingFile, , 
+// Calledsend() — _pendingFile, ,
 async function maybeSendFile() {
   if (!_pendingFile) return false;
   const caption = document.getElementById('payload').value.trim();
@@ -371,7 +374,7 @@ async function sendFile(file, caption = '') {
   const { blob, fileKeyB64 } = await encryptFile(fileBytes);
   const checksum    = await fileSha256(blob);
 
-  // 2. Requestpresigned URL 
+  // 2. Requestpresigned URL
   let uploadData;
   try {
     const r = await authedFetch(`${SERVER_URL}/files/upload`, {
@@ -637,6 +640,100 @@ async function sendReaction(targetMsgId, emoji, action = 'add') {
     _seenIds.add(selfMsgId);
     handleIncomingReaction(envelopeBase);
   }
+}
+
+
+// ---------------------------------------------------------------------------
+// Delete message
+// ---------------------------------------------------------------------------
+
+function handleIncomingDelete(envelope) {
+  const { body } = envelope;
+  if (!body?.reply_to) return;
+  const msgId = body.reply_to;
+  removeLocalMessage(msgId);
+}
+
+function removeLocalMessage(msgId) {
+  const idx = _allMessages.findIndex(m => m.message_id === msgId);
+  if (idx !== -1) _allMessages.splice(idx, 1);
+  delete _reactions[msgId];
+  saveMessages();
+  saveReactions();
+  // Remove from DOM
+  const el = document.getElementById(msgId);
+  if (el) el.remove();
+  // Delete from server DB
+  authedFetch(`${SERVER_URL}/messages/${encodeURIComponent(msgId)}`, { method: 'DELETE' }).catch(() => {});
+}
+
+async function deleteMessage(msgId) {
+  const targetMsg = _allMessages.find(m => m.message_id === msgId);
+  if (!targetMsg) return;
+
+  const isMine = targetMsg.isMine;
+  const conversationId = targetMsg.conversation_id;
+
+  if (!isMine) {
+    // Foreign message — just delete locally
+    removeLocalMessage(msgId);
+    return;
+  }
+
+  // Own message — send delete request to recipient
+  const timestamp = Math.floor(Date.now() / 1000);
+  const group = getGroup(conversationId);
+
+  const envelopeBase = {
+    type:            'delete',
+    from:            _address,
+    conversation_id: conversationId,
+    message_id:      'msg-' + uuidv4(),
+    timestamp,
+    body: { reply_to: msgId },
+  };
+  envelopeBase.signature = await signEnvelope(JSON.stringify(envelopeBase));
+
+  if (group) {
+    const encrypted = await encryptWithGroupKey(group.group_key, JSON.stringify(envelopeBase));
+    await authedFetch(`${SERVER_URL}/send`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({
+        message_id:      envelopeBase.message_id,
+        to:              group.roster,
+        timestamp,
+        conversation_id: conversationId,
+        payload:         encrypted,
+      }),
+    });
+  } else {
+    const convs       = loadConversations();
+    const peerAddress = convs.find(c => c.conversation_id === conversationId)?.peerAddress;
+    if (!peerAddress) { removeLocalMessage(msgId); return; }
+
+    const contacts = loadContacts();
+    const contact  = contacts.find(c => c.address === peerAddress);
+    if (!contact?.pubKeyB64) { removeLocalMessage(msgId); return; }
+
+    let recipientKey;
+    try {
+      recipientKey = await crypto.subtle.importKey(
+        'spki', b64ToBuf(contact.pubKeyB64),
+        { name: 'RSA-OAEP', hash: 'SHA-256' }, false, ['encrypt']
+      );
+    } catch { removeLocalMessage(msgId); return; }
+
+    const encRecipient = await encryptPayload(recipientKey, JSON.stringify(envelopeBase));
+    await authedFetch(`${SERVER_URL}/send`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ message_id: envelopeBase.message_id, to: peerAddress, timestamp, conversation_id: conversationId, payload: encRecipient }),
+    });
+  }
+
+  // Delete locally
+  removeLocalMessage(msgId);
 }
 
 
