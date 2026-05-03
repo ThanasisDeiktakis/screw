@@ -1,6 +1,6 @@
 'use strict';
 
-const CACHE_NAME = 'screw-v31';
+const CACHE_NAME = 'screw-v32';
 
 // Files to precache on SW install
 // ⚠️ IMPORTANT: when adding new JS/CSS/HTML files —
@@ -10,6 +10,8 @@ const PRECACHE = [
   './',
   './index.html',
   './add.html',
+  './config.js',
+  './favicon.ico',
   './css/base.css',
   './css/layout.css',
   './css/messages.css',
@@ -31,6 +33,7 @@ const PRECACHE = [
   './js/ui.js',
   './js/marked.min.js',
   './js/purify.min.js',
+  './js/qrcode.min.js',
   './js/karta.js',
   './locales/ru.js',
   './locales/el.js',

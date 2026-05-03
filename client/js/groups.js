@@ -314,6 +314,9 @@ async function handleGroupMessage(msg) {
   } else if (msgType === 'reaction') {
     handleIncomingReaction(envelope);
     return true;
+  } else if (msgType === 'delete') {
+    handleIncomingDelete(envelope);
+    return true;
   } else {
     return true;
   }

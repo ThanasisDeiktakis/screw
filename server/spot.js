@@ -58,6 +58,22 @@ app.post('/push/subscribe', authMiddleware, pushSubscribe);
 app.get('/contacts', authMiddleware, contactsList);
 app.put('/contacts/:hash', authMiddleware, contactsUpsert);
 app.delete('/contacts/:hash', authMiddleware, contactsRemove);
+// --- Delete message from own DB ---
+app.delete('/messages/:message_id', authMiddleware, (req, res) => {
+  const { address } = req.auth;
+  const { message_id } = req.params;
+  if (!message_id) return res.status(400).json({ error: 'message_id required' });
+  try {
+    const { getDb } = require('./src/spot/db');
+    const db = getDb(address);
+    const info = db.prepare('DELETE FROM messages WHERE message_id = ?').run(message_id);
+    db.close();
+    return res.json({ ok: true, deleted: info.changes > 0 });
+  } catch (e) {
+    console.error('[delete] db error:', e.message);
+    return res.status(500).json({ error: 'db error' });
+  }
+});
 // --- Files (S3) ---
 app.post('/files/upload', authMiddleware, requestUpload);
 // --- Files proxy (S3_PROXY_MODE=1) ---
