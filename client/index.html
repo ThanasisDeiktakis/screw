@@ -78,7 +78,7 @@
         <div class="attach-menu" id="attach-menu" style="display:none;">
           <button id="btn-attach-file" onclick="openFilePicker()" data-i18n="attach.file">📎 File</button>
           <button onclick="openLocationPicker()" data-i18n="attach.location">📍 Location</button>
-          <button class="disabled" title="Soon" disabled>👤 Contact</button>
+          <button class="disabled" title="Soon" data-i18n="attach.contact" data-i18n-title="attach.contactSoon" disabled>👤 Contact</button>
         </div>
       </div>
       <div id="emoji-picker-wrap">
@@ -705,7 +705,7 @@ function _tryReplaceNotification(msgId) {
 
 // ─── Service Worker ───────────────────────────────────────────────────────────
 if ('serviceWorker' in navigator) {
-  window._swRegistrationPromise = navigator.serviceWorker.register('/sw.js')
+  window._swRegistrationPromise = navigator.serviceWorker.register('./sw.js')
     .then(reg => { console.log('[sw] registered, scope:', reg.scope); return reg; })
     .catch(err => { console.warn('[sw] registration error:', err.message || err.name || String(err), err); return null; });
 

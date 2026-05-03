@@ -26,7 +26,7 @@ window._locale = {
   'chat.empty':                 'сообщений пока нет',
   'chat.selectConversation':    'выберите беседу слева',
   'chat.moreMessages':          'ещё {n} сообщений',
-  'chat.updated':               'обновлено: {time}',
+  'chat.updated':               'обновлено',
   'chat.noKeyWarning':          '⚠ Публичный ключ этого контакта неизвестен — отправка недоступна.',
   'chat.awaitHandshake':        '⏳ Ожидаем ответный handshake…',
   'chat.channelReadonly':       '📢 Это канал — только владелец может писать.',
@@ -99,7 +99,7 @@ window._locale = {
   'group.noTopic':              '⚠ Введите название',
 
   // Files & attach
-  'file.label':                 '📎 Файл',
+  'file.label':                 'Файл',
   'file.tooLarge':              'Файл слишком большой: {size}. Максимальный размер — {max}.',
   'file.serverError':           'Ошибка сервера: ',
   'file.uploadLinkError':       'Не удалось получить ссылку для загрузки: ',

@@ -4,6 +4,6 @@
 const SCREW_CONFIG = {
   // Spot URL. Change to your domain on deploy:
   // SERVER_URL: 'https://spot.example.com'
-  SERVER_URL: 'http://localhost:8080',
+  SERVER_URL: 'https://spot.screw.mooo.com', // Default is my public demo server, which may be slow or unavailable. Use your own Spot for best experience.
 };
 

@@ -26,7 +26,7 @@ window._locale = {
   'chat.empty':                 'δεν υπάρχουν μηνύματα',
   'chat.selectConversation':    'επιλέξτε συνομιλία αριστερά',
   'chat.moreMessages':          'ακόμα {n} μηνύματα',
-  'chat.updated':               'ενημέρωση: {time}',
+  'chat.updated':               'ενημέρωση',
   'chat.noKeyWarning':          '⚠ Το δημόσιο κλειδί αυτής της επαφής είναι άγνωστο — αποστολή αδύνατη.',
   'chat.awaitHandshake':        '⏳ Αναμονή χειραψίας…',
   'chat.channelReadonly':       '📢 Αυτό είναι κανάλι — μόνο ο ιδιοκτήτης μπορεί να γράφει.',
@@ -99,7 +99,7 @@ window._locale = {
   'group.noTopic':              '⚠ Εισάγετε όνομα',
 
   // Files & attach
-  'file.label':                 '📎 Αρχείο',
+  'file.label':                 'Αρχείο',
   'file.tooLarge':              'Πολύ μεγάλο αρχείο: {size}. Μέγιστο — {max}.',
   'file.serverError':           'Σφάλμα διακομιστή: ',
   'file.uploadLinkError':       'Αδυναμία λήψης συνδέσμου: ',

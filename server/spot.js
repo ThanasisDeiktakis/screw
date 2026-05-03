@@ -6,12 +6,12 @@ const http = require('http');
 const express = require('express');
 const { authMiddleware } = require('./src/spot/middleware');
 const { register: authRegister, verify: authVerify } = require('./src/spot/auth');
-const { send } = require('./src/spot/send');
+const { send, receiveFromHub } = require('./src/spot/send');
 const { receive } = require('./src/spot/receive');
 const { list: contactsList, upsert: contactsUpsert, remove: contactsRemove } = require('./src/spot/contacts');
 const { init: wsInit } = require('./src/spot/ws');
 const { initPush, getVapidPublic, subscribe: pushSubscribe } = require('./src/spot/push');
-const { initS3, requestUpload, isConfigured: s3Configured, getMaxSize, getTtlDays } = require('./src/spot/files');
+const { initS3, requestUpload, isConfigured: s3Configured, getMaxSize, getTtlDays, proxyPut, proxyGet } = require('./src/spot/files');
 const PORT = process.env.PORT || 8080;
 const app = express();
 app.use(express.json({ limit: '1mb' }));
@@ -52,13 +52,17 @@ app.get('/config', (req, res) => {
 });
 // --- Protected routes
 app.post('/send', authMiddleware, send);
+app.post('/hub/deliver', receiveFromHub);
 app.get('/receive', authMiddleware, receive);
 app.post('/push/subscribe', authMiddleware, pushSubscribe);
 app.get('/contacts', authMiddleware, contactsList);
 app.put('/contacts/:hash', authMiddleware, contactsUpsert);
 app.delete('/contacts/:hash', authMiddleware, contactsRemove);
-// --- FilesS3) ---
+// --- Files (S3) ---
 app.post('/files/upload', authMiddleware, requestUpload);
+// --- Files proxy (S3_PROXY_MODE=1) ---
+app.put('/files/put/:fileId', proxyPut);
+app.get('/files/get/:fileId', proxyGet);
 // Health check
 app.get('/health', (req, res) => res.json({ ok: true }));
 // Client static filesDISABLE_STATIC=1 .env)

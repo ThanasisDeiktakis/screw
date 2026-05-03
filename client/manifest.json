@@ -2,7 +2,8 @@
   "name": "Screw Messenger",
   "short_name": "Screw",
   "description": "Decentralized E2E encrypted messenger",
-  "start_url": "/",
+  "start_url": ".",
+  "scope": ".",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#1e1e1e",
@@ -23,7 +24,7 @@
   "protocol_handlers": [
     {
       "protocol": "web+screw",
-      "url": "/?pending_add=%s"
+      "url": "./?pending_add=%s"
     }
   ],
   "screenshots": [

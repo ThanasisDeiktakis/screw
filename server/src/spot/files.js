@@ -13,6 +13,10 @@ let bucket = null;
 let ttlDays = 7;
 let maxSize = 52428800; // 50 MB
 let publicUrl = null;
+let proxyMode = false;
+
+// Cache original presigned URLs for proxy mode (fileId → { put, get })
+const proxyUrls = new Map();
 
 function initS3() {
   let endpoint   = process.env.S3_ENDPOINT;
@@ -21,6 +25,7 @@ function initS3() {
   ttlDays        = parseInt(process.env.S3_FILE_TTL_DAYS || '7', 10);
   maxSize        = parseInt(process.env.S3_MAX_FILE_SIZE || '52428800', 10);
   publicUrl      = (process.env.S3_PUBLIC_URL || '').replace(/\/$/, '') || null;
+  proxyMode      = process.env.S3_PROXY_MODE === '1';
 
   if (!endpoint || !process.env.S3_ACCESS_KEY || !process.env.S3_SECRET_KEY) {
     console.log('[s3] not configured — file uploads disabled');
@@ -42,7 +47,7 @@ function initS3() {
     responseChecksumValidation: 'WHEN_REQUIRED',
   });
 
-  console.log(`[s3] initialized: ${endpoint}/${bucket}, publicUrl: ${publicUrl || '(not set)'}`);
+  console.log(`[s3] initialized: ${endpoint}/${bucket}, publicUrl: ${publicUrl || '(not set)'}, proxy: ${proxyMode}`);
 }
 
 // CheckSCREWENC
@@ -106,7 +111,18 @@ async function requestUpload(req, res) {
 
 
   const base = publicUrl || `https://${new URL(uploadUrl).hostname}`;
-  const downloadUrl = `${base}/${fileId}`;
+  let downloadUrl = `${base}/${fileId}`;
+
+  if (proxyMode) {
+    const proto = req.headers['x-forwarded-proto'] || req.protocol || 'https';
+    const host  = req.headers['x-forwarded-host']  || req.headers.host;
+    const origin = `${proto}://${host}`;
+    // Save original S3 URLs for proxy
+    proxyUrls.set(fileId, { put: uploadUrl, get: downloadUrl });
+    setTimeout(() => proxyUrls.delete(fileId), 86400_000); // cleanup after 24h
+    uploadUrl   = `${origin}/files/put/${fileId}`;
+    downloadUrl = `${origin}/files/get/${fileId}`;
+  }
 
 
 
@@ -126,5 +142,67 @@ function isConfigured() {
   return s3 !== null;
 }
 
-module.exports = { initS3, requestUpload, isConfigured, getMaxSize: () => maxSize, getTtlDays: () => ttlDays };
+// Collect raw body from request
+function collectBody(req) {
+  return new Promise((resolve, reject) => {
+    const chunks = [];
+    req.on('data', c => chunks.push(c));
+    req.on('end', () => resolve(Buffer.concat(chunks)));
+    req.on('error', reject);
+  });
+}
+
+// Proxy PUT: client → Spot → S3
+async function proxyPut(req, res) {
+  if (!s3 || !proxyMode) return res.status(404).end();
+
+  const cached = proxyUrls.get(req.params.fileId);
+  if (!cached) return res.status(404).json({ error: 'Unknown file ID or link expired' });
+
+  try {
+    const body = await collectBody(req);
+    const resp = await fetch(cached.put, {
+      method: 'PUT',
+      body,
+    });
+    res.status(resp.status);
+    resp.headers.forEach((v, k) => {
+      if (!['transfer-encoding', 'connection'].includes(k.toLowerCase())) {
+        res.setHeader(k, v);
+      }
+    });
+    const buf = Buffer.from(await resp.arrayBuffer());
+    res.end(buf);
+  } catch (e) {
+    console.error('[s3-proxy] PUT error:', e.message);
+    res.status(502).json({ error: 'S3 proxy error' });
+  }
+}
+
+// Proxy GET: client → Spot → S3
+async function proxyGet(req, res) {
+  if (!s3 || !proxyMode) return res.status(404).end();
+
+  const cached = proxyUrls.get(req.params.fileId);
+  const target = cached
+    ? cached.get
+    : `${(process.env.S3_ENDPOINT.startsWith('http') ? process.env.S3_ENDPOINT : 'https://' + process.env.S3_ENDPOINT)}/${bucket}/${req.params.fileId}`;
+
+  try {
+    const resp = await fetch(target);
+    res.status(resp.status);
+    resp.headers.forEach((v, k) => {
+      if (!['transfer-encoding', 'connection'].includes(k.toLowerCase())) {
+        res.setHeader(k, v);
+      }
+    });
+    const buf = Buffer.from(await resp.arrayBuffer());
+    res.end(buf);
+  } catch (e) {
+    console.error('[s3-proxy] GET error:', e.message);
+    res.status(502).json({ error: 'S3 proxy error' });
+  }
+}
+
+module.exports = { initS3, requestUpload, isConfigured, getMaxSize: () => maxSize, getTtlDays: () => ttlDays, proxyPut, proxyGet };
 
